@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Puzzle Solver</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+
+        /* Default to light theme */
+        [data-theme="dark"] {
+            --background-color: #f7f7f7;
+            --text-color: #333;
+            --container-background: #ffffff;
+            --border-color: #ddd;
+            --button-bg-color: #007BFF;
+            --button-bg-hover-color: #0056b3;
+        }
+
+        /* Dark theme */
+        :root {
+            --background-color: #181818;
+            --text-color: #e4e4e4;
+            --container-background: #333;
+            --border-color: #555;
+            --button-bg-color: #1a73e8;
+            --button-bg-hover-color: #155cb3;
+        }
+
+        /* Resetting default browser styles */
+        body, html, div, canvas {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            background-image: linear-gradient(120deg, #000000, #652e2e);
+        }
+
+        [data-theme="dark"] {
+            background-image: linear-gradient(120deg, #000000, #652e2e);
+        }
+
+        #appContainer {
+            background: var(--container-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;  /* Center the children */    
+            transition: background 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] #appContainer {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active, input:focus {
+            transform: scale(0.98);  /* Slightly shrink when pressed or focused */
+        }
+
+        button:active {
+            background-color: #003b80;  /* Darker shade for active state */
+        }
+
+        canvas {
+            border: 1px solid var(--border-color);
+            display: block;
+            margin: 20px 0;    
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: none;
+        }
+        [data-theme="dark"] canvas {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: var(--button-bg-color);
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            max-width: 100%; /* Ensure it doesn't overflow the canvas width */
+        }
+
+        button:hover {
+            background-color: var(--button-bg-hover-color);
+        }
+
+        label {
+            margin-right: 10px;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 100%; /* Ensure it doesn't overflow the canvas width */
+            background-color: var(--button-bg-color);
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            max-width: 100%; /* Ensure it doesn't overflow the canvas width */
+        }
+
+        #filefields {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%; /* Ensure it doesn't overflow the canvas width */
+            text-align: center;
+        }        
+        #savebutton {
+            display:none;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%; /* Ensure it doesn't overflow the canvas width */
+            text-align: center;
+        }
+
+
+        /* Responsive styles for smaller screens, adjust as needed */
+        @media (max-width: 600px) {
+            button, input {
+                width: 100%; /* Make them full width on smaller screens */
+            }
+        }
+        .icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            fill: var(--text-color); /* Use the text color variable so it's theme-responsive */
+            transition: fill 0.3s;
+        }
+
+        /* Adjust the icon's color on hover for better UX */
+        .icon:hover {
+            fill: var(--button-bg-hover-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="appContainer">
+        <div>
+            <h1>MODEL MASHER</h1>
+        </div>
+        <div id="filefields">
+            <input type="file" id="imageInput" accept="image/*">
+            <label for="thresholdInput">Threshold:</label>
+            <input type="number" id="thresholdInput" placeholder="Enter threshold" value="2000">
+            <button onclick="uploadImage()">Upload Image</button>
+        </div>
+        <div id="savebutton"> 
+            <button  onclick="sendModifiedData()">Save Mapping</button>
+        </div>
+        <div>
+            <canvas id="puzzleCanvas"></canvas>
+        </div>
+        
+    </div>
+
+    <script>
+
+        let canvas = document.getElementById('puzzleCanvas');
+        let ctx = canvas.getContext('2d');
+        let pieces = [];
+        let offsetX = 0, offsetY = 0;
+        let maxCanvasSize = 1024;
+        let imgHeight = 0;
+        let imgWidth = 0;
+        let zoom = 1;
+        let initialZoom = 0;
+
+        function uploadImage() {
+            document.getElementById('savebutton').style.display="unset";
+            let imageInput = document.getElementById('imageInput');
+            let thresholdInput = document.getElementById('thresholdInput');
+            let thresholdValue = parseFloat(thresholdInput.value);
+            let formData = new FormData();
+            //var filename = imageInput.value.replace(/^.*?([^\\\/]*)$/, '$1');
+            formData.append('image', imageInput.files[0]);
+            formData.append('threshold', thresholdValue);
+            formData.append('filename', imageInput.files[0].name);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json()).then(data => {
+                let img = new Image();
+                img.src = URL.createObjectURL(imageInput.files[0]);
+                img.onload = () => {
+                    imgHeight = img.height;
+                    imgWidth = img.width;
+                    zoom = maxCanvasSize/imgWidth;  
+                    initialZoom = zoom;                  
+                    canvas.width = img.width*zoom;
+                    canvas.height = img.height*zoom;
+                    fetchPuzzlePieces();
+                };
+            });
+        }
+
+        function fetchPuzzlePieces() {
+            fetch('/get_puzzle_pieces').then(response => response.json()).then(data => {
+                pieces = data.map(piece => ({
+                    contour: piece.piece.map(pt => pt[0]),
+                    position: piece.position,
+                    angle: 0,
+                    center: calculateCenter(piece.piece.map(pt => pt[0])),
+                    color: getRandomColour(),
+                    isDragging: false,
+                    dragOffset: { x: 0, y: 0 },
+                    original_piece: piece.original_piece,
+                    original_position: piece.original_position,
+                    original_center: piece.original_center,
+                    original_angle: piece.original_angle  // assuming this exists in the original data
+                }));
+
+                renderPuzzlePieces();
+            });
+        }
+
+        function getRandomColour() {
+            var hsv = HSVtoRGB(Math.random()*360, 0.9 , 0.9 )
+            
+            return "RGB(" + hsv.r + "," + hsv.g + "," + hsv.b + ")";
+        }
+
+        function mix(a, b, v)
+        {
+            return (1-v)*a + v*b;
+        }
+
+        function HSVtoRGB(H, S, V)
+        {
+            var V2 = V * (1 - S);
+            var r  = ((H>=0 && H<=60) || (H>=300 && H<=360)) ? V : ((H>=120 && H<=240) ? V2 : ((H>=60 && H<=120) ? mix(V,V2,(H-60)/60) : ((H>=240 && H<=300) ? mix(V2,V,(H-240)/60) : 0)));
+            var g  = (H>=60 && H<=180) ? V : ((H>=240 && H<=360) ? V2 : ((H>=0 && H<=60) ? mix(V2,V,H/60) : ((H>=180 && H<=240) ? mix(V,V2,(H-180)/60) : 0)));
+            var b  = (H>=0 && H<=120) ? V2 : ((H>=180 && H<=300) ? V : ((H>=120 && H<=180) ? mix(V2,V,(H-120)/60) : ((H>=300 && H<=360) ? mix(V,V2,(H-300)/60) : 0)));
+
+            return {
+                r : Math.round(r * 255),
+                g : Math.round(g * 255),
+                b : Math.round(b * 255)
+            };
+        }
+
+        function dragPiece(piece, dx, dy) {
+            piece.contour = piece.contour.map(([x, y]) => [x + dx, y + dy]);
+            piece.center = calculateCenter(piece.contour);
+            piece.position = [piece.position[0] + dx, piece.position[1] + dy];
+        }
+
+        function calculateCenter(contour) {
+            const xSum = contour.reduce((sum, [x, _]) => sum + x, 0);
+            const ySum = contour.reduce((sum, [_, y]) => sum + y, 0);
+            return [xSum / contour.length, ySum / contour.length];
+        }
+
+        function rotatePiece(piece, angle) {
+            let centerX = piece.center[0];
+            let centerY = piece.center[1];
+
+            piece.contour = piece.contour.map(([x, y]) => {
+                let dx = x - centerX;
+                let dy = y - centerY;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                let prevAngle = Math.atan2(dy, dx);
+                return [
+                    centerX + distance * Math.cos(prevAngle + angle),
+                    centerY + distance * Math.sin(prevAngle + angle)
+                ];
+            });
+
+            piece.angle += angle;
+        }
+
+        function renderPuzzlePieces() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+
+            ctx.translate(offsetX, offsetY);
+            ctx.scale(zoom, zoom);
+
+            ctx.strokeStyle = "#FF0000";
+            ctx.lineWidth = 8;
+            ctx.strokeRect(0, 0, imgWidth, imgHeight);
+
+            pieces.forEach(piece => {
+                let contour = new Path2D();
+                piece.contour.forEach(([x, y]) => contour.lineTo(x, y));
+                ctx.strokeStyle = piece.color;
+                contour.closePath();
+                ctx.stroke(contour);
+            });
+
+            ctx.restore();
+        }
+
+        let isPanning = false;
+        let prevMouseX, prevMouseY;
+        let isZooming = false;
+
+        canvas.addEventListener('mousedown', (event) => {
+            const { x, y } = getMousePos(event);
+
+            if (event.shiftKey) {
+                //isPanning = true;
+                prevMouseX = event.clientX - canvas.getBoundingClientRect().left;
+                prevMouseY = event.clientY - canvas.getBoundingClientRect().top;
+            } else {
+                for (let piece of pieces) {
+                    let contour = new Path2D();
+                    piece.contour.forEach(([x, y]) => contour.lineTo(x, y));
+                    contour.closePath();
+                    if (ctx.isPointInPath(contour, x, y)) {
+                        piece.isDragging = true;
+                        piece.dragOffset.x = x;
+                        piece.dragOffset.y = y;
+                        break;
+                    }
+                }
+            }
+        });
+
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left) / zoom - offsetX,
+                y: (event.clientY - rect.top) / zoom - offsetY
+            };
+        }
+
+        canvas.addEventListener('mousemove', (event) => {
+            const { x, y } = getMousePos(event);
+
+            if (isPanning) {
+                let dx = event.clientX - canvas.getBoundingClientRect().left - prevMouseX;
+                let dy = event.clientY - canvas.getBoundingClientRect().top - prevMouseY;
+                offsetX += dx*zoom;
+                offsetY += dy*zoom;
+                prevMouseX = event.clientX - canvas.getBoundingClientRect().left;
+                prevMouseY = event.clientY - canvas.getBoundingClientRect().top;
+                renderPuzzlePieces();
+            } else {
+                let isAnyPieceDragging = false;
+                for (let piece of pieces) {
+                    if (piece.isDragging) {
+                        let dx = x - piece.dragOffset.x;
+                        let dy = y - piece.dragOffset.y;
+                        dragPiece(piece, dx, dy);
+                        piece.dragOffset.x = x;
+                        piece.dragOffset.y = y;
+                        isAnyPieceDragging = true;
+                    }
+                }
+
+                if (isAnyPieceDragging) {
+                    renderPuzzlePieces();
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', (event) => {
+            const { x, y } = getMousePos(event);
+            isPanning = false;
+            for (let piece of pieces) {
+                piece.isDragging = false;
+            }
+        });
+
+        canvas.addEventListener('wheel', (event) => {          
+
+            if (event.shiftKey) {
+                const { x, y } = getMousePos(event);
+                event.preventDefault();
+
+                let scaleFactor = 1.1;
+
+                if (event.deltaY < 0) {
+                    zoom *= scaleFactor;
+                    if(zoom>=initialZoom) {                
+                        canvas.width *= scaleFactor;
+                        canvas.height *= scaleFactor;                 
+                    }
+                } else {
+                    zoom /= scaleFactor;
+                    if(canvas.width>maxCanvasSize) {                              
+                        canvas.width /= scaleFactor;
+                        canvas.height /= scaleFactor;
+                    }
+                }
+
+
+            }
+
+            renderPuzzlePieces();
+        });
+
+        canvas.addEventListener('contextmenu', (event) => {
+            const { x, y } = getMousePos(event);
+            event.preventDefault();
+
+            for (let piece of pieces) {
+                let contour = new Path2D();
+                piece.contour.forEach(([x, y]) => contour.lineTo(x, y));
+                contour.closePath();
+                if (ctx.isPointInPath(contour, x, y)) {
+                    rotatePiece(piece, Math.PI / 4); // Rotate by 45 degrees
+                    renderPuzzlePieces();
+                    break;
+                }
+            }
+        });
+
+        function sendModifiedData() {
+        const formattedData = pieces.map(piece => {
+            return {
+                piece: piece.contour.map(pt => [[Math.round(pt[0]), Math.round(pt[1])]]),
+                position: [Math.round(piece.position[0]), Math.round(piece.position[1])],
+                angle: Math.round(piece.angle*(180/(Math.PI))),
+                center: [Math.round(piece.center[0]), Math.round(piece.center[1])],
+                original_piece: piece.original_piece,
+                original_position: piece.original_position,
+                //original_position: [Math.round(piece.original_position[0]), Math.round(piece.original_position[1])],
+                original_center: [Math.round(piece.original_center[0]), Math.round(piece.original_center[1])],
+                original_angle: Math.round(piece.original_angle)  // assuming this exists in the original data
+
+
+                
+                
+            };
+        });
+
+            fetch('/save_modified_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formattedData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+
+</html>
