@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import os
 import json;
+from PIL import Image
 
 app = Flask(__name__)
 
@@ -100,8 +101,9 @@ def save_modified_data():
     return jsonify({"message": "Sent Modified Data"})
 
 
+data = []
 def save_transformations(modded_pieces):
-    
+    global data
     base_parameters = {
         'source_width': uploadWidth,
         'source_height': uploadHeight,
@@ -121,15 +123,97 @@ def save_transformations(modded_pieces):
             'original_center': puzzle_pieces[idx]['original_center']
         }
         data['transformations'].append(transformation)
-
     with open("output/"+os.path.splitext(uploadname)[0]+'_map.json', 'w') as file:
         json.dump(data, file, indent=4)
-
     return jsonify({"message": "Transformations saved successfully"})
+
+
+
+@app.route('/seg', methods=['POST'])
+def process_seg():
+    # Grab The Image
+    if 'image' not in request.files:
+        return jsonify({"message": "No image part in the request"}), 400
+
+    img_file = request.files['image']
+    filename = os.path.join(UPLOAD_FOLDER, "SEG_"+uploadname)
+    img_file.save(filename)
+    image_file = cv2.imread(os.path.join(UPLOAD_FOLDER, "SEG_"+uploadname))
+    # Mash it
+    #pil_image = image_file.convert('RGB') 
+    #open_cv_image = np.array(pil_image) 
+    # Convert RGB to BGR 
+    image = image_file #open_cv_image[:, :, ::-1].copy() 
+
+    transformations = data['transformations']
+    params = data['base_parameters']
+
+    # Assuming the source (or original) image dimensions are `source_width` and `source_height`
+    source_width = params['source_width']
+    source_height = params['source_height']
+
+    scale_factor_x = image.shape[1] / source_width
+    scale_factor_y = image.shape[0] / source_height
+    output_image = np.zeros_like(image)
+
+    for transformation in transformations:
+        # Scale the original contour points
+        original_contour = np.array(transformation['original_contour'], dtype=np.int32)
+        original_contour[:, 0, 0] = (original_contour[:, 0, 0] * scale_factor_x).astype(np.int32)
+        original_contour[:, 0, 1] = (original_contour[:, 0, 1] * scale_factor_y).astype(np.int32)
+
+        # Scale the translation vector
+        translation_vector = (int(transformation['translation_vector'][0] * scale_factor_x),
+                            int(transformation['translation_vector'][1] * scale_factor_y))
+
+        # Scale the center of rotation
+        center_of_rotation = (int(transformation['center_of_rotation'][0] * scale_factor_x),
+                            int(transformation['center_of_rotation'][1] * scale_factor_y))
+        
+        # Extract and scale the original_center
+        original_center = (int(transformation['original_center'][0] * scale_factor_x),
+                            int(transformation['original_center'][1] * scale_factor_y))
+        
+        # Create the original mask using the original_contour
+        original_mask = np.zeros(image.shape[:2], dtype=np.uint8)
+
+
+        rotation_angle = transformation['rotation_angle']   
+
+        # Compute the transformation matrix
+        M_rotation = cv2.getRotationMatrix2D(center_of_rotation, rotation_angle, 1)
+        M_rotation[0, 2] += translation_vector[0]
+        M_rotation[1, 2] += translation_vector[1]  
+
+        cv2.drawContours(original_mask, [original_contour], -1, (255), thickness=cv2.FILLED)
+
+        # Extract the puzzle piece from the original image using the original mask
+        piece = np.zeros_like(image)
+        piece[original_mask == 255] = image[original_mask == 255]
+
+        # Apply the transformation to the piece
+        transformed_piece = cv2.warpAffine(piece, M_rotation, (image.shape[1], image.shape[0]))
+
+        # Update the mask to match the transformed piece
+        transformed_mask = cv2.warpAffine(original_mask, M_rotation, (image.shape[1], image.shape[0]))
+        transformed_piece[transformed_mask == 0] = 0
+
+        # Add the transformed piece to the output image
+        output_image[transformed_mask == 255] = transformed_piece[transformed_mask == 255]
+    img_cv2 = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
+    img_pil = Image.fromarray(img_cv2)
+    filename = os.path.join(OUTPUT_FOLDER, "SEG_"+uploadname)
+    img_pil.save(filename)
+    return jsonify({"message": "Segmentation Image Generated Succesfully"})
+
+
 
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

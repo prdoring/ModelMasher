@@ -163,12 +163,15 @@
             <h1>MODEL MASHER</h1>
         </div>
         <div id="filefields">
+            <label for="thresholdInput">Wireframe:</label>
             <input type="file" id="imageInput" accept="image/*">
             <label for="thresholdInput">Threshold:</label>
             <input type="number" id="thresholdInput" placeholder="Enter threshold" value="2000">
             <button onclick="uploadImage()">Upload Image</button>
         </div>
         <div id="savebutton"> 
+            <label for="SegmentationImage">Segmentation Image(optional):</label>
+            <input type="file" id="SegmentationImage" accept="image/*">
             <button  onclick="sendModifiedData()">Save Mapping</button>
         </div>
         <div>
@@ -301,7 +304,7 @@
             ctx.scale(zoom, zoom);
 
             ctx.strokeStyle = "#FF0000";
-            ctx.lineWidth = 8;
+            ctx.lineWidth = 4*zoom;
             ctx.strokeRect(0, 0, imgWidth, imgHeight);
 
             pieces.forEach(piece => {
@@ -432,23 +435,19 @@
         });
 
         function sendModifiedData() {
-        const formattedData = pieces.map(piece => {
-            return {
-                piece: piece.contour.map(pt => [[Math.round(pt[0]), Math.round(pt[1])]]),
-                position: [Math.round(piece.position[0]), Math.round(piece.position[1])],
-                angle: Math.round(piece.angle*(180/(Math.PI))),
-                center: [Math.round(piece.center[0]), Math.round(piece.center[1])],
-                original_piece: piece.original_piece,
-                original_position: piece.original_position,
-                //original_position: [Math.round(piece.original_position[0]), Math.round(piece.original_position[1])],
-                original_center: [Math.round(piece.original_center[0]), Math.round(piece.original_center[1])],
-                original_angle: Math.round(piece.original_angle)  // assuming this exists in the original data
-
-
-                
-                
-            };
-        });
+            const formattedData = pieces.map(piece => {
+                return {
+                    piece: piece.contour.map(pt => [[Math.round(pt[0]), Math.round(pt[1])]]),
+                    position: [Math.round(piece.position[0]), Math.round(piece.position[1])],
+                    angle: Math.round(piece.angle*(180/(Math.PI))),
+                    center: [Math.round(piece.center[0]), Math.round(piece.center[1])],
+                    original_piece: piece.original_piece,
+                    original_position: piece.original_position,
+                    //original_position: [Math.round(piece.original_position[0]), Math.round(piece.original_position[1])],
+                    original_center: [Math.round(piece.original_center[0]), Math.round(piece.original_center[1])],
+                    original_angle: Math.round(piece.original_angle)  // assuming this exists in the original data                
+                };
+            });
 
             fetch('/save_modified_data', {
                 method: 'POST',
@@ -464,7 +463,25 @@
             .catch(error => {
                 console.error('Error:', error);
             });
+            let segImage = document.getElementById('SegmentationImage').files[0];
+            if(segImage){
+                SegmentationImageProcess(segImage);
+            }
         }
+
+        function SegmentationImageProcess(segImage)
+        {
+            let formData = new FormData();
+            formData.append('image', segImage);
+
+            fetch('/seg', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json()).then(data => {
+                console.log("Segmentation Image Processed");
+            });
+        }
+
     </script>
 </body>
 
