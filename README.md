@@ -1,4 +1,23 @@
 
+
+# Model Masher
+
+I initally built these tools in an effort to better generate ACC Liveries with stable diffusion.  After much experimentation with controlnet and custom LORAs we soon ran into the limitations of SDs ability to "stitch" pieces of UV files that a physically seperate on a texture sheet, but logically together in the complied OBJ.
+
+## Installation
+
+### Prerequisites:
+- [Automatic111's Stable Diffusion UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+- [Controlnet Extension](https://github.com/Mikubill/sd-webui-controlnet)
+
+---
+
+To use these tools place the modelmasher.py file in the stable diffusion scripts folder, then download the ArrangementTool folder and run 
+
+```bash
+  python server.py
+```
+
 ## Example Workflow
 
 This workflow provides an example for generating an ACC Livery. It should be effective for most complex UV maps, though results might vary. If you're reading this, it's assumed you know how to set up a custom livery for ACC. If not, you can view my [video tutorial](https://www.youtube.com/watch?v=gyHiSUuZmRA) for the base setup.
