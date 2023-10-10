@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Puzzle Solver</title>
+    <title>Model Masher</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
 
@@ -427,7 +427,7 @@
                 piece.contour.forEach(([x, y]) => contour.lineTo(x, y));
                 contour.closePath();
                 if (ctx.isPointInPath(contour, x, y)) {
-                    rotatePiece(piece, Math.PI / 4); // Rotate by 45 degrees
+                    rotatePiece(piece, Math.PI / 8); // Rotate by 45 degrees
                     renderPuzzlePieces();
                     break;
                 }
