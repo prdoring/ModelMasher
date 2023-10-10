@@ -21,10 +21,6 @@ I initally built these tools in an effort to better generate ACC Liveries with s
 * place the modelmasher.py file in the stable diffusion scripts folder
 * In the ArrangementTool folder run web_ui.bat 
 
-```bash
-  python server.py
-```
-
 ## Example Workflow
 
 This workflow provides an example for generating an ACC Livery. It should be effective for most complex UV maps, though results might vary. If you're reading this, it's assumed you know how to set up a custom livery for ACC. If not, you can view my [video tutorial](https://www.youtube.com/watch?v=gyHiSUuZmRA) for the base setup.
@@ -138,3 +134,9 @@ If satisfied with a generated image:
 - For those with powerful systems, repeat this process to upscale to 4096x4096. If not, navigate to the extras tab > single image upscaler 1 and set it to ESRGAN_4x.
 
 ![Final Image](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/4080acc.png?raw=true)
+
+
+
+## Special Thanks
+* [This UV texture workflow was the spark that kicked off this project for me](https://github.com/Mikubill/sd-webui-controlnet/discussions/204) 
+* [Trackilicious, the best ACC League out there, which makes me always want a tight livery](https://www.thesimgrid.com/hosts/trackilicious) 
