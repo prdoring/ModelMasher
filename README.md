@@ -16,7 +16,7 @@ The initial steps (0-2) are required once per model to produce the necessary bas
 - Locate the PSD template for your desired car skin.
   - I use [this Google Drive folder](https://drive.google.com/drive/folders/1xh92HjkVp1ilkmx4F3_tpRB7dWt8pHlP), but there are other options available.
 - **Optional**: For those wanting to use Armorpainter to create a segmentation map, find the 3DOBJ template.
-  - Again, I use [this Google Drive folder](https://drive.google.com/drive/folders/1Vx2_fFr_LlEavvqd0rdJvkN7-Ly5lGNE).
+  - I use [this Google Drive folder](https://drive.google.com/drive/folders/1Vx2_fFr_LlEavvqd0rdJvkN7-Ly5lGNE).
 
 ---
 
