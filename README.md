@@ -1,19 +1,4 @@
 
-# Model Masher
-
-I initally built these tools in an effort to better generate ACC Liveries with stable diffusion.  After much experimentation with controlnet and custom LORAs we soon ran into the limitations of SDs ability to "stitch" pieces of UV files that a physically seperate on a texture sheet, but logically together in the complied OBJ.
-
-
-
-## Installation
-
-To use these tools place the modelmasher.py file in the stable diffusion scripts folder, then download the ArrangementTool folder and run 
-
-```bash
-  python server.py
-```
-    
-
 ## Example Workflow
 
 Here is an example workflow for generating an ACC Livery.  This should work for most complex UV maps but your mielage may vary.  I will skip the specifics of setting up a custom livery for ACC as if you are here I am sure you allready know how to do so. If you don't you can check out my [video tutorial](https://www.youtube.com/watch?v=gyHiSUuZmRA) for the base setup.
@@ -103,3 +88,18 @@ Your output should look something like one of the two images below.
 ![base](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/BASE.png?raw=true)
 ![mashed](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/MASHED.png?raw=true)
 ![low-res-test](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/512acc.png?raw=true)
+
+**Step 4 - Upscale**
+* If you are happy with an image you generated, click the painting below it to send it to the img2img tab
+* Set sampling steps to at least 60
+* DPM++ 2m Karras Sampling method
+* Denoising strenght low, I normally do .2
+* I like middling cfg scale so I go 17
+* In scripts select SD upscale
+    * Set Scale factor to 4
+    * Set upscaler to ESRGAN_4x
+* Generate and save this to your decals.png and check it out in ACC
+* If you have the power, you follow the same process as this to upscalle it to 4096x4096
+* If you don't just use the extras tab>single image upscaler 1 set to ESRGAN_4x
+
+![final](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/4080acc.png?raw=true)
