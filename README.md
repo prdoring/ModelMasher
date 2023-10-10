@@ -18,7 +18,7 @@ To use these tools place the modelmasher.py file in the stable diffusion scripts
 
 Here is an example workflow for generating an ACC Livery.  This should work for most complex UV maps but your mielage may vary.  I will skip the specifics of setting up a custom livery for ACC as if you are here I am sure you allready know how to do so. If you don't you can check out my [video tutorial](https://www.youtube.com/watch?v=gyHiSUuZmRA) for the base setup.
 
-Steps 0-3 will only need to be done once to generate as many ai liveries as you want.
+Steps 0-2 will only need to be done once per model to generate the base files needed for as many ai liveries as you want.
 
 **Prereqs**
 * [Automatic111's stable diffusion UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
@@ -69,6 +69,37 @@ Your output should look something like one of the two images below.
     * Right click will rotate the piece.
     * Shift + Scroll Wheel will zoom  
     * Overlaps are okay, and sometimes better, I don't have warping figured out yet so this is best effort.
+    * Anything outside of the bounding rect will be rendered black.
 * Below is the before and after for the model I am working on in this example.
 * (Optional) Upload the segmentation image we generated in step 1.5
 * When you are happy with your arrangement Click 'Save Mapping'
+* This should output a JSON file and if you used a segmentation image, a segmentation file in the output folder of your server directory.
+![before](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/before.png?raw=true)
+![after](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/after.png?raw=true)
+
+**Step 3 - GENERATE SOME LIVERIES!**
+* Launch Automatic111's webUI for stable diffusion.
+* In the text to img tab set your parameters.
+    * I like the following but part of the fun is playing with these values.
+    * [deliberate_v3](https://civitai.com/models/4823/deliberate) checkpoint
+    * DPM++ 2m Karras Sampling method
+    * 60 Sampling Steps
+    * 512X512
+    * I like a batch count of 4 so I can choose my favorite
+* (OPTIONAL) If using a segmentation image open up control net which you totally allready installed RIGHT?!
+    * Under single image select the generated segmentation image from step 2. NOT the segmentation image you provided for step 2, but the one output in the same folder as your json file. ([serverfolder]/output)
+    * Under model select whichever one ends with "_seg"
+    * Modify your control weight, this determins how strongly it will conform to your segmentation image. Super fun to play around with. But if it is too high it can make your image have odd artifacts around segment edges.  For this example I'll set it to 0.6.
+        * It may be fun to play with start and end steps as well, I find that setting a lower end step lets SD blend the segmentation better.
+* Under script select 'Model Masher'
+    * Select the JSON file output by step 2 ([serverfolder]/output)
+    * Select black background if you want any pieces that werent part of your arrangement to be unskinned
+        * I prefer to leave this unchecked as it at-least puts the smaller pieces in the same pallate.
+* Enter a text prompt! for this example I will use "wooded forrest, creatures, streams, trees, cliffs, painting"
+* After it runs, model masher will output the base images first, and then the mashed ones after.  Find the ones that look to have weird blocking, of a contiguous image.
+* Save this 512 version as your decals.png by hitting the download button in the top right of the image.
+* Give it a look in ACC, and we can see if we want to move on to upscaling!
+
+![base](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/BASE.png?raw=true)
+![mashed](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/MASHED.png?raw=true)
+![low-res-test](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/512acc.png?raw=true)
