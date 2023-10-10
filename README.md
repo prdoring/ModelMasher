@@ -3,7 +3,8 @@
 # Model Masher
 
 **THIS IS VERY MUCH A WORK IN PROGRESS AND HAS A LONG WAY TO GO**
-That being said, if you have any feedback or want to contribute please let me know, it's a fun problem space.
+
+*That being said, if you have any feedback or want to contribute please let me know, it's a fun problem space.*
 
 I initally built these tools in an effort to better generate ACC Liveries with stable diffusion.  After much experimentation with controlnet and custom LORAs we soon ran into the limitations of SDs ability to "stitch" pieces of UV files that a physically seperate on a texture sheet, but logically together in the complied OBJ.
 
