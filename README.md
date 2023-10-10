@@ -17,7 +17,7 @@ I initally built these tools in an effort to better generate ACC Liveries with s
 - [Controlnet Extension](https://github.com/Mikubill/sd-webui-controlnet)
 
 ---
-
+### Setup
 * Place the modelmasher.py file in the stable diffusion scripts folder
 * In the ArrangementTool folder run web_ui.bat 
 
