@@ -18,7 +18,8 @@ I initally built these tools in an effort to better generate ACC Liveries with s
 
 ---
 
-To use these tools place the modelmasher.py file in the stable diffusion scripts folder, then download the ArrangementTool folder and run 
+* place the modelmasher.py file in the stable diffusion scripts folder
+* In the ArrangementTool folder run web_ui.bat 
 
 ```bash
   python server.py
@@ -76,10 +77,8 @@ For this step, Step 1.5 (Optional) - For finer control of the "Look" you can gen
 ![Armorpaint output](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/SEGIMG_base.png?raw=true)
 
 **Step 2 - Create Your Arrangement**
-* Open up a terminal
-* ```cd [directory you placed server.py and index.html]```
-* ```python server.py```
-* In a browser navigate to http://127.0.0.1:5000/ or the URL output in the server startup.
+* Navigate to the ArrangementTool folder and run web_ui.bat
+* If a browswer does not automatiaclly open navigate to http://127.0.0.1:5000/ or the URL output in the server startup.
 * For the wireframe, select the wireframe or black and white image you generated in step 1.
 * Threshold determinse how large of a piece will be rendered.  Set this higher for only large pieces, smaller if you want all the details.
 * Click 'Upload Image'
