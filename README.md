@@ -1,5 +1,7 @@
 
 
+![Wireframe](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/top.png?raw=true)
+
 # Model Masher
 
 **THIS IS VERY MUCH A WORK IN PROGRESS AND HAS A LONG WAY TO GO**
