@@ -18,7 +18,7 @@ I initally built these tools in an effort to better generate ACC Liveries with s
 
 ---
 
-* place the modelmasher.py file in the stable diffusion scripts folder
+* Place the modelmasher.py file in the stable diffusion scripts folder
 * In the ArrangementTool folder run web_ui.bat 
 
 ## Example Workflow
@@ -135,7 +135,7 @@ If satisfied with a generated image:
 
 ![Final Image](https://github.com/prdoring/ModelMasher/blob/main/readmeimg/4080acc.png?raw=true)
 
-
+---
 
 ## Special Thanks
 * [This UV texture workflow was the spark that kicked off this project for me](https://github.com/Mikubill/sd-webui-controlnet/discussions/204) 
