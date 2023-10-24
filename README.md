@@ -10,6 +10,10 @@
 
 I initally built these tools in an effort to better generate ACC Liveries with stable diffusion.  After much experimentation with controlnet and custom LORAs we soon ran into the limitations of SDs ability to "stitch" pieces of UV files that a physically seperate on a texture sheet, but logically together in the complied OBJ.
 
+# V2 Workflow
+TODO;
+
+# V1 Workflow
 ## Installation
 
 ### Prerequisites:
