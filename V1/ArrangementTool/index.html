@@ -174,8 +174,11 @@
 
 <body>
     <div id="appContainer">
-        <div>
+        <div style = "text-align: center;">
             <h1>MODEL MASHER</h1>
+            <h3>
+            Right click to rotate - Alt for finer rotation - Ctrl for reverse rotation</h3>
+            <h3>Shift Scroll to zoom</h3>
         </div>
         <div id="filefields">
             <label for="thresholdInput">Wireframe:</label>
@@ -446,9 +449,25 @@
                 piece.contour.forEach(([x, y]) => contour.lineTo(x, y));
                 contour.closePath();
                 if (ctx.isPointInPath(contour, x, y)) {
-                    rotatePiece(piece, Math.PI / 8); // Rotate by 45 degrees
+                    if (event.ctrlKey) {
+                        if(event.altKey){
+                            rotatePiece(piece, -(Math.PI / 16)); 
+                        }
+                        else {
+                            rotatePiece(piece, -(Math.PI / 8)); 
+                        }
+                    }
+                    else{
+                        if(event.altKey){
+                            rotatePiece(piece, (Math.PI / 16)); 
+                        }
+                        else {
+                            rotatePiece(piece, Math.PI / 8); 
+                        }
+                    }
                     renderPuzzlePieces();
                     break;
+                    
                 }
             }
         });
