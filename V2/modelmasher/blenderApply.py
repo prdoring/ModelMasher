@@ -1,9 +1,26 @@
 import bpy
 import sys
-
-import bpy
-import sys
 import os
+
+
+def save_image_as(image: bpy.types.Image, path: str=bpy.app.tempdir, name: str='Untitled', file_format: str='PNG', color: str='RGB', color_depth: str='16', compression: int=0):
+    scene = bpy.data.scenes.new("Temp")
+    
+    show_name = image.name
+    image.name = name
+    
+    # use docs.blender.org/api/current/bpy.types.ImageFormatSettings.html for more properties
+    settings = scene.render.image_settings
+    settings.file_format = file_format  # Options: 'BMP', 'IRIS', 'PNG', 'JPEG', 'JPEG2000', 'TARGA', 'TARGA_RAW', 'CINEON', 'DPX', 'OPEN_EXR_MULTILAYER', 'OPEN_EXR', 'HDR', 'TIFF', 'WEBP'
+    settings.color_mode = color  # Options: 'BW', 'RGB', 'RGBA' (depends on file_format)
+    settings.color_depth = color_depth  # Options: '8', '10', '12', '16', '32' (depends on file_format)
+    settings.compression = compression  # Range: 0 - 100
+    
+    print(str(path))
+    image.save_render(path, scene=scene)
+    
+    bpy.data.scenes.remove(scene)
+    image.name = show_name
 
 def get_all_mesh_objects(base_object):
     """Recursively get all mesh children of an object."""
@@ -20,19 +37,19 @@ args = sys.argv[sys.argv.index("--") + 1:]
 # Extract arguments
 obj_path = args[0]
 output_path = args[1]
-input_texture_paths = args[2:]  # All arguments starting from the third one are treated as texture paths
+dimensions = int(args[2])
+input_texture_paths = args[3:]  # All arguments starting from the third one are treated as texture paths
 
 
 # Parameters
 file_path = obj_path
 material_name = "Apply"
 image_path = output_path
-bake_image_name = "BakeImage"
+bake_image_name = "BakeImage2"
 env_texture_path = input_texture_paths[0]
-
 # Create an image for baking
 if bake_image_name not in bpy.data.images:
-    image = bpy.data.images.new(bake_image_name, width=2048, height=2048)
+    image = bpy.data.images.new(bake_image_name, width=dimensions, height=dimensions, float_buffer=True)
 
 # Get a set of all current objects in the scene
 current_objects = set(bpy.data.objects)
@@ -130,7 +147,9 @@ for i, imgPath in enumerate(input_texture_paths):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # Ensure the renderer is set to Cycles
-    bpy.context.scene.render.engine = 'CYCLES'
+    bpy.context.scene.render.engine = 'CYCLES'        
+    bpy.context.scene.render.image_settings.color_mode = 'RGB'
+    bpy.context.scene.render.image_settings.color_depth = '16'
 
     # Perform the bake
     bpy.context.scene.cycles.bake_type = "DIFFUSE"  # Change based on what you want to bake
@@ -139,6 +158,9 @@ for i, imgPath in enumerate(input_texture_paths):
     # 4. Save the image
     if bake_image_name in bpy.data.images:
         image = bpy.data.images[bake_image_name]
-        image.save_render(image_path+"_"+str(i)+".png")
+        #image.save_render(image_path+"_"+str(i)+".png")
+        save_image_as(image, image_path+"_"+str(i)+".png")
     else:
         raise ValueError("Baked image not found. Check bake settings.")
+    
+

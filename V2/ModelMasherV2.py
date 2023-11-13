@@ -40,21 +40,15 @@ class Script(scripts.Script):
         return [obj_file]  # Add reverseTransform to the return
 
     
-
+    def get_image_dimensions(image_path):
+        with Image.open(image_path) as img:
+            width, height = img.size
+        return width, height
   
-# This is where the additional processing is implemented. The parameters include
-# self, the model object "p" (a StableDiffusionProcessing class, see
-# processing.py), and the parameters returned by the ui method.
-# Custom functions can be defined here, and additional libraries can be imported 
-# to be used in processing. The return value should be a Processed object, which is
-# what is returned by the process_images method.
 
     def run(self, p, obj_file):  
 
-        # If overwrite is false, append the rotation information to the filename
-        # using the "basename" parameter and save it in the same directory.
-        # If overwrite is true, stop the model from saving its outputs and
-        # save the rotated and flipped images instead.
+
         basename = ""
         basename += "_vflip"
         
@@ -68,7 +62,7 @@ class Script(scripts.Script):
 
         # Construct the mashout_tmp_path using the base_dir
         mashout_tmp_path = os.path.join(base_dir, 'mashout', 'tmp')
-
+        width = p.width
         # Construct the command
         command = [
             'blender',
@@ -78,7 +72,8 @@ class Script(scripts.Script):
             os.path.join(script_dir, 'modelmasher', 'blenderApply.py'),
             '--',
             obj_file.name,
-            mashout_tmp_path
+            mashout_tmp_path,
+            str(width)
         ]
 
         # Loop through proc.images
@@ -87,13 +82,9 @@ class Script(scripts.Script):
                                             proc.seed + i, proc.prompt, opts.samples_format, info=proc.info, p=p)
             absolute_saved_img_path = os.path.join(base_dir, saved_img_path[0])
             print(absolute_saved_img_path)
-            if(len(proc.images)>1 and i == 1): continue
             command.append(absolute_saved_img_path)
-        time.sleep(5)
-        subprocess.run(command)
-       
+        subprocess.run(command)       
         for i in range(len(proc.images)):
-            if(len(proc.images)>1 and i == 1): continue
             print("MASHING")
             
             # Construct the image path using base_dir
@@ -106,13 +97,13 @@ class Script(scripts.Script):
             
             # Load the image
             mashedImage = cv2.imread(image_path)
+            if(mashedImage.any()):
+                mashedImage_PIL = Image.fromarray(cv2.cvtColor(mashedImage, cv2.COLOR_BGR2RGB))
             
-            mashedImage_PIL = Image.fromarray(cv2.cvtColor(mashedImage, cv2.COLOR_BGR2RGB))
-            
-            # Append the loaded image to proc.images
-            proc.images.append(mashedImage_PIL)
+                # Append the loaded image to proc.images
+                proc.images.append(mashedImage_PIL)
 
-            # Save the image if required
-            images.save_image(mashedImage_PIL, p.outpath_samples, basename+"_mash",
-                            proc.seed + i, proc.prompt, opts.samples_format, info=proc.info, p=p)
+                # Save the image if required
+                images.save_image(mashedImage_PIL, p.outpath_samples, basename+"_mash",
+                                proc.seed + i, proc.prompt, opts.samples_format, info=proc.info, p=p)
         return proc
